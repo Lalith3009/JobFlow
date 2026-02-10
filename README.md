@@ -1,179 +1,199 @@
 # JobFlow
 
-A full-stack job tracking application with Supabase backend, Google authentication, and Chrome extension integration.
+A full-stack job tracking application built with React and Supabase, featuring a Kanban board, AI-powered job analysis, resume management, and real-time sync across devices.
+
+![React](https://img.shields.io/badge/React-18-blue)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)
+![Claude AI](https://img.shields.io/badge/Claude-AI%20Powered-orange)
 
 ## Features
 
--  **Google Authentication** - Secure sign-in with Google
--  **Kanban Board** - Drag-and-drop job status management
--  **Analytics Dashboard** - Track your job search progress
--  **Real-time Sync** - Changes sync instantly across devices
--  **Chrome Extension** - Save jobs with one click from any job site
--  **AI Analysis** - Get intelligent job match scores (optional)
+### Job Management
+- **Kanban Board** - Drag-and-drop across 5 statuses: Wishlist, Applied, Interview, Offer, Rejected
+- **Search & Filter** - Filter by title, company, or location; sort by date, company, or title
+- **Job Details** - Track title, company, location, URL, salary, description, and more
+- **Deadline Reminders** - Set follow-up dates with visual overdue indicators on job cards
+- **Notes Timeline** - Add timestamped notes to each job application
+- **Quick Duplicate** - Clone jobs for similar positions
+- **Undo Actions** - Toast notifications with undo for status changes
+- **Confetti** - Celebration animation when a job reaches Offer status
+
+### AI Features
+- **Job Match Analysis** - Claude AI scores job fit (0-100) with skills breakdown, action items, and interview topics
+- **Cover Letter Generation** - AI-generated personalized cover letters based on your resume and the job description
+- **Smart Caching** - Analysis results cached and invalidated when your resume changes
+- **Fallback Analysis** - Local keyword-based analysis if the API is unavailable
+
+### Resume Management
+- **File Upload** - Support for PDF, DOCX, and TXT files
+- **Text Extraction** - Automatic parsing with pdfjs-dist and mammoth
+- **Revision Tracking** - Resume stored in Supabase with update history
+
+### Analytics Dashboard
+- **Key Metrics** - Total jobs, applications, interviews, and offers at a glance
+- **Application Pipeline** - Visual distribution across all statuses
+- **Weekly Activity** - 7-day chart of jobs added per day
+- **Response Rate** - Track your interview + offer conversion rate
+
+### UX & Theming
+- **Dark / Light Mode** - Toggle theme with persistence across sessions
+- **Keyboard Shortcuts** - `N` new job, `?` help, `1-4` navigate pages, `Esc` close modals
+- **Mobile Responsive** - Collapsible sidebar, hamburger menu on mobile
+- **Real-time Sync** - Changes sync instantly across devices via Supabase Realtime
+
+### Settings & Export
+- **Default Status** - Configure which status new jobs default to
+- **Export to JSON** - Download all jobs as JSON
+- **Export to CSV** - Download all jobs as formatted CSV
+
+### Chrome Extension
+- Save jobs with one click from any job site
+- Syncs directly to your JobFlow dashboard
 
 ## Tech Stack
 
-- **Frontend**: React 18
-- **Backend**: Supabase (PostgreSQL + Auth + Realtime)
-- **Hosting**: Vercel (free tier)
-- **Extension**: Chrome Extension
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18 |
+| Backend | Supabase (PostgreSQL + Auth + Realtime) |
+| AI | Claude API (Anthropic) |
+| Auth | Google OAuth via Supabase |
+| Serverless | Vercel Edge Functions |
+| File Parsing | pdfjs-dist, mammoth |
+| Styling | CSS custom properties + JS style objects |
 
-## Setup Instructions
+## Setup
 
-### Step 1: Create Supabase Project
+### 1. Create a Supabase Project
 
-1. Go to [supabase.com](https://supabase.com) and sign up
-2. Click "New Project"
-3. Name it "jobflow" and set a database password
-4. Wait for the project to be created (~2 minutes)
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Wait for the project to initialize (~2 minutes)
 
-### Step 2: Set Up Database
+### 2. Set Up the Database
 
-1. In Supabase dashboard, go to **SQL Editor**
-2. Click "New Query"
-3. Copy the contents of `supabase/schema.sql` and paste it
-4. Click "Run" to create all tables and policies
+1. In the Supabase dashboard, go to **SQL Editor**
+2. Paste the contents of `supabase/schema.sql` and run it
 
-### Step 3: Enable Google Auth
+This creates four tables with row-level security:
 
-1. Go to **Authentication** → **Providers**
-2. Enable **Google**
-3. Go to [Google Cloud Console](https://console.cloud.google.com)
-4. Create a new project or select existing
-5. Go to **APIs & Services** → **Credentials**
-6. Create **OAuth 2.0 Client ID** (Web application)
-7. Add authorized redirect URI: `https://YOUR-PROJECT-ID.supabase.co/auth/v1/callback`
-8. Copy Client ID and Secret to Supabase Google provider settings
+| Table | Purpose |
+|-------|---------|
+| `jobs` | Job applications (title, company, status, notes, follow-up dates) |
+| `resumes` | User resume text and metadata |
+| `job_analyses` | Cached AI analysis results with resume hash tracking |
+| `cover_letters` | Cached AI-generated cover letters |
 
-### Step 4: Get Your Supabase Keys
+### 3. Enable Google Auth
 
-1. In Supabase dashboard, go to **Project Settings** → **API**
-2. Copy:
-   - `Project URL` (e.g., https://xxxxx.supabase.co)
-   - `anon public` key
+1. In Supabase, go to **Authentication** > **Providers** > enable **Google**
+2. In [Google Cloud Console](https://console.cloud.google.com), create an OAuth 2.0 Client ID
+3. Add authorized redirect URI: `https://YOUR-PROJECT-ID.supabase.co/auth/v1/callback`
+4. Copy Client ID and Secret into Supabase Google provider settings
 
-### Step 5: Set Up Claude AI
-**Go to console.anthropic.com and sign up.**
+### 4. Get Your API Keys
 
-- Generate a new API Key.
+**Supabase** - Project Settings > API:
+- `Project URL` (e.g., `https://xxxxx.supabase.co`)
+- `anon public` key
 
-**Add to Supabase:**
+**Claude AI** - [console.anthropic.com](https://console.anthropic.com):
+- Generate a new API key
 
-- Go to `Supabase Dashboard` → `Project Settings` → `Edge Functions` (or Vault/Secrets).
+### 5. Configure Environment
 
-- Add a new secret named `ANTHROPIC_API_KEY` with your key value.
+Create a `.env` file in the project root:
 
-- Keep this key handy for the next steps (Local .env and Vercel).
-
-### Step 6: Configure the App
-
-1. Create `.env` file in project root:
 ```bash
 REACT_APP_SUPABASE_URL=https://your-project-id.supabase.co
 REACT_APP_SUPABASE_ANON_KEY=your-anon-key-here
-REACT_APP_CLAUDE_API_KEY=your-anthropic-key-here
+CLAUDE_API_KEY=your-anthropic-key-here
 ```
 
-### Step 7: Install & Run
+### 6. Install & Run
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
 npm start
-
-# Build for production
-npm run build
 ```
 
-### Step 8: Deploy to Vercel
+### 7. Deploy to Vercel
 
 1. Push code to GitHub
-2. Go to [vercel.com](https://vercel.com)
-3. Import your repository
-4. Add environment variables:
-   - `REACT_APP_SUPABASE_URL`
-   - `REACT_APP_SUPABASE_ANON_KEY`
-   - `REACT_APP_CLAUDE_API_KEY`
-5. Deploy!
-
-## Chrome Extension Setup
-
-The Chrome extension syncs jobs to your dashboard:
-
-1. Install the JobFlow Chrome extension  
-2. Sign in to the web app  
-3. Open the Chrome extension  
-4. Click **Sync** — jobs automatically sync to your dashboard
-
+2. Import the repository at [vercel.com](https://vercel.com)
+3. Add the three environment variables above
+4. Deploy
 
 ## Project Structure
 
 ```
 jobflow-v2/
+├── api/
+│   ├── analyze.js              # AI job analysis endpoint
+│   └── cover-letter.js         # AI cover letter endpoint
 ├── public/
-│   └── index.html
-│   └──   pdf.worker.min.js
+│   ├── index.html
+│   └── pdf.worker.min.js
 ├── src/
 │   ├── components/
-│   │   ├── AddJobModal.js     # Add job form
-│   │   ├── AIAnalysisModal.js # AI job analysis modal
-│   │   ├── LoginPage.js       # Google sign-in
-│   │   ├── Dashboard.js       # Main layout
-│   │   ├── Header.js          # Top navigation
-│   │   ├── JobCard.js         # Individual job card
-│   │   ├── Sidebar.js         # Navigation
-│   │   ├── KanbanBoard.js     # Drag-drop board
-│   │   ├── StatsBar.js        # Table view
-│   │   └── AddJobModal.js     # Add job form
+│   │   ├── AddJobModal.js      # Add job form
+│   │   ├── AIAnalysisModal.js  # AI match analysis modal
+│   │   ├── CoverLetterModal.js # AI cover letter modal
+│   │   ├── ConfigError.js      # Config error display
+│   │   ├── Dashboard.js        # Main layout + keyboard shortcuts
+│   │   ├── JobDetailModal.js   # Edit job + notes timeline
+│   │   ├── Loading.js          # Loading spinner
+│   │   ├── LoginPage.js        # Google OAuth login
+│   │   ├── Router.js           # Page routing
+│   │   └── ToastContainer.js   # Toast notification system
 │   ├── context/
-│   │   ├── AuthContext.js     # Auth state
-│   │   └── JobsContext.js     # Jobs state
-│   │   └── ResumeContext.js   # Resume state
+│   │   ├── AuthContext.js      # Auth state + Google OAuth
+│   │   ├── JobsContext.js      # Jobs CRUD + real-time sync
+│   │   ├── ResumeContext.js    # Resume upload + parsing
+│   │   └── ThemeContext.js     # Dark/light mode toggle
+│   ├── hooks/
+│   │   └── useToast.js         # Toast notification hook
 │   ├── lib/
-│   │   └── supabase.js        # Supabase client
-│   │   └── claude.js          # Claude Client
-│   ├── App.js
-│   ├── index.js
-│   └── index.css
+│   │   ├── claude.js           # Claude API client
+│   │   ├── localAnalyze.js     # Fallback local analysis
+│   │   └── supabase.js         # Supabase client
+│   ├── pages/
+│   │   ├── Analytics/          # Analytics dashboard
+│   │   ├── Board/              # Kanban board + job cards
+│   │   ├── Resume/             # Resume management
+│   │   └── Settings/           # Settings + export
+│   ├── styles/
+│   │   └── styles.js           # Centralized style objects
+│   ├── App.js                  # Root component + providers
+│   ├── index.css               # CSS custom properties (theming)
+│   └── index.js                # Entry point
 ├── supabase/
-│   └── schema.sql             # Database schema
-├── .gitignore
-├── package-lock.json
-├── package.json
-└── README.md
-└── vercel.json
+│   └── schema.sql              # Database schema + RLS policies
+├── vercel.json                 # Vercel config
+└── package.json
 ```
 
-## Database Schema
+## Keyboard Shortcuts
 
-### Tables
-- `jobs` - Job applications
-- `resumes` - User resumes
-- `user_settings` - User preferences
-- `activities` - Activity log
+| Key | Action |
+|-----|--------|
+| `N` | Open new job modal |
+| `1` | Go to Board |
+| `2` | Go to Resume |
+| `3` | Go to Analytics |
+| `4` | Go to Settings |
+| `?` | Show keyboard shortcuts |
+| `Esc` | Close open modal |
 
 ## Troubleshooting
 
-### "App won’t connect"
+**App won't connect** - Verify `.env` values and restart the dev server.
 
-- Check .env values
+**Google login fails** - Check the redirect URI matches your Supabase project URL and that Google provider is enabled.
 
-- Restart dev server
+**Permission denied on data** - Run `schema.sql` to set up RLS policies. Confirm the user is authenticated.
 
-### "Google login fails"
-
-- Verify redirect URI
-
-- Ensure Google provider is enabled in Supabase
-
-### Permission denied
-
-- Run schema.sql
-
-- Confirm user is authenticated
+**Node.js v22 issues** - react-scripts 5.0.1 has compatibility issues with Node 22's `cross-spawn`. Fix with `rm -rf node_modules && npm install`.
 
 ## License
 
-MIT License - feel free to use for your own job search!
+MIT
