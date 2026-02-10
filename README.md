@@ -171,29 +171,3 @@ jobflow-v2/
 ├── vercel.json                 # Vercel config
 └── package.json
 ```
-
-## Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| `N` | Open new job modal |
-| `1` | Go to Board |
-| `2` | Go to Resume |
-| `3` | Go to Analytics |
-| `4` | Go to Settings |
-| `?` | Show keyboard shortcuts |
-| `Esc` | Close open modal |
-
-## Troubleshooting
-
-**App won't connect** - Verify `.env` values and restart the dev server.
-
-**Google login fails** - Check the redirect URI matches your Supabase project URL and that Google provider is enabled.
-
-**Permission denied on data** - Run `schema.sql` to set up RLS policies. Confirm the user is authenticated.
-
-**Node.js v22 issues** - react-scripts 5.0.1 has compatibility issues with Node 22's `cross-spawn`. Fix with `rm -rf node_modules && npm install`.
-
-## License
-
-MIT
